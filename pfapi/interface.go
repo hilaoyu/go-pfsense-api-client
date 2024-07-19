@@ -1,7 +1,6 @@
 package pfapi
 
 import (
-	"context"
 	"encoding/json"
 )
 
@@ -114,8 +113,8 @@ type vlanListResponse struct {
 }
 
 // ListInterfaces returns the interfaces
-func (s InterfaceService) ListInterfaces(ctx context.Context) ([]*Interface, error) {
-	response, err := s.client.get(ctx, interfaceEndpoint, nil)
+func (s InterfaceService) ListInterfaces() ([]*Interface, error) {
+	response, err := s.client.get(interfaceEndpoint, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -134,8 +133,8 @@ func (s InterfaceService) ListInterfaces(ctx context.Context) ([]*Interface, err
 }
 
 // ListVLANs returns the VLANs
-func (s InterfaceService) ListVLANs(ctx context.Context) ([]*VLAN, error) {
-	response, err := s.client.get(ctx, interfaceVLANEndpoint, nil)
+func (s InterfaceService) ListVLANs() ([]*VLAN, error) {
+	response, err := s.client.get(interfaceVLANEndpoint, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -148,12 +147,12 @@ func (s InterfaceService) ListVLANs(ctx context.Context) ([]*VLAN, error) {
 	return resp.Data, nil
 }
 
-func (s InterfaceService) UpdateInterface(ctx context.Context, iface *InterfaceRequest) error {
+func (s InterfaceService) UpdateInterface(iface *InterfaceRequest) error {
 	jsonData, err := json.Marshal(iface)
 	if err != nil {
 		return err
 	}
-	_, err = s.client.put(ctx, interfaceEndpoint, map[string]string{"id": iface.Id}, jsonData)
+	_, err = s.client.put(interfaceEndpoint, map[string]string{"id": iface.Id}, jsonData)
 	if err != nil {
 		return err
 	}
@@ -164,8 +163,8 @@ func (s InterfaceService) UpdateInterface(ctx context.Context, iface *InterfaceR
 }
 
 // Apply applies pending interface changes
-func (s InterfaceService) Apply(ctx context.Context) error {
-	_, err := s.client.post(ctx, interfaceApplyEndpoint, nil, nil)
+func (s InterfaceService) Apply() error {
+	_, err := s.client.post(interfaceApplyEndpoint, nil, nil)
 	if err != nil {
 		return err
 	}

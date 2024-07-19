@@ -1,7 +1,6 @@
 package pfapi
 
 import (
-	"context"
 	"encoding/json"
 	"strconv"
 )
@@ -38,8 +37,8 @@ type gatewayListResponse struct {
 }
 
 // ListGateways returns the gateways
-func (s RoutingService) ListGateways(ctx context.Context) ([]*Gateway, error) {
-	response, err := s.client.get(ctx, gatewayEndpoint, nil)
+func (s RoutingService) ListGateways() ([]*Gateway, error) {
+	response, err := s.client.get(gatewayEndpoint, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -90,12 +89,12 @@ type GatewayRequest struct {
 }
 
 // CreateGateway creates a new Gateway
-func (s RoutingService) CreateGateway(ctx context.Context, newGateway GatewayRequest) error {
+func (s RoutingService) CreateGateway(newGateway GatewayRequest) error {
 	jsonData, err := json.Marshal(newGateway)
 	if err != nil {
 		return err
 	}
-	_, err = s.client.post(ctx, gatewayEndpoint, nil, jsonData)
+	_, err = s.client.post(gatewayEndpoint, nil, jsonData)
 	if err != nil {
 		return err
 	}
@@ -103,8 +102,8 @@ func (s RoutingService) CreateGateway(ctx context.Context, newGateway GatewayReq
 }
 
 // DeleteGateway deletes a Gateway
-func (s RoutingService) DeleteGateway(ctx context.Context, gatewayID int) error {
-	_, err := s.client.delete(ctx, gatewayEndpoint, map[string]string{"id": strconv.Itoa(gatewayID)})
+func (s RoutingService) DeleteGateway(gatewayID int) error {
+	_, err := s.client.delete(gatewayEndpoint, map[string]string{"id": strconv.Itoa(gatewayID)})
 	if err != nil {
 		return err
 	}
@@ -112,12 +111,12 @@ func (s RoutingService) DeleteGateway(ctx context.Context, gatewayID int) error 
 }
 
 // UpdateGateway modifies a existing gateway
-func (s RoutingService) UpdateGateway(ctx context.Context, gatewayToUpdate GatewayRequest) error {
+func (s RoutingService) UpdateGateway(gatewayToUpdate GatewayRequest) error {
 	jsonData, err := json.Marshal(gatewayToUpdate)
 	if err != nil {
 		return err
 	}
-	_, err = s.client.put(ctx, gatewayEndpoint, nil, jsonData)
+	_, err = s.client.put(gatewayEndpoint, nil, jsonData)
 	if err != nil {
 		return err
 	}
@@ -131,12 +130,12 @@ type DefaultGatewayRequest struct {
 }
 
 // SetDefaultGateway sets the default gateway
-func (s RoutingService) SetDefaultGateway(ctx context.Context, newDefaultGateway DefaultGatewayRequest) error {
+func (s RoutingService) SetDefaultGateway(newDefaultGateway DefaultGatewayRequest) error {
 	jsonData, err := json.Marshal(newDefaultGateway)
 	if err != nil {
 		return err
 	}
-	_, err = s.client.put(ctx, defaultGatewayEndpoint, nil, jsonData)
+	_, err = s.client.put(defaultGatewayEndpoint, nil, jsonData)
 	if err != nil {
 		return err
 	}
@@ -144,8 +143,8 @@ func (s RoutingService) SetDefaultGateway(ctx context.Context, newDefaultGateway
 }
 
 // Apply applies pending routing changes
-func (s RoutingService) Apply(ctx context.Context) error {
-	_, err := s.client.post(ctx, routingApplyEndpoint, nil, nil)
+func (s RoutingService) Apply() error {
+	_, err := s.client.post(routingApplyEndpoint, nil, nil)
 	if err != nil {
 		return err
 	}

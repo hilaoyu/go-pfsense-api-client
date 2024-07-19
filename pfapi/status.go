@@ -1,7 +1,6 @@
 package pfapi
 
 import (
-	"context"
 	"encoding/json"
 )
 
@@ -103,8 +102,8 @@ type logStatusResponse struct {
 }
 
 // GetSystemStatus returns the system status
-func (s StatusService) GetSystemStatus(ctx context.Context) (*SystemStatus, error) {
-	response, err := s.client.get(ctx, systemStatusEndpoint, nil)
+func (s StatusService) GetSystemStatus() (*SystemStatus, error) {
+	response, err := s.client.get(systemStatusEndpoint, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -117,8 +116,8 @@ func (s StatusService) GetSystemStatus(ctx context.Context) (*SystemStatus, erro
 }
 
 // ListInterfaceStatus returns the interface status
-func (s StatusService) ListInterfaceStatus(ctx context.Context) ([]*InterfaceStatus, error) {
-	response, err := s.client.get(ctx, interfaceStatusEndpoint, nil)
+func (s StatusService) ListInterfaceStatus() ([]*InterfaceStatus, error) {
+	response, err := s.client.get(interfaceStatusEndpoint, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -131,8 +130,8 @@ func (s StatusService) ListInterfaceStatus(ctx context.Context) ([]*InterfaceSta
 }
 
 // ListGatewayStatus returns the interface status
-func (s StatusService) ListGatewayStatus(ctx context.Context) ([]*GatewayStatus, error) {
-	response, err := s.client.get(ctx, gatewayStatusEndpoint, nil)
+func (s StatusService) ListGatewayStatus() ([]*GatewayStatus, error) {
+	response, err := s.client.get(gatewayStatusEndpoint, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -145,8 +144,8 @@ func (s StatusService) ListGatewayStatus(ctx context.Context) ([]*GatewayStatus,
 }
 
 // genericLogRequest returns the a generic Log response
-func (s StatusService) genericLogRequest(ctx context.Context, endpoint string) ([]string, error) {
-	response, err := s.client.get(ctx, endpoint, nil)
+func (s StatusService) genericLogRequest(endpoint string) ([]string, error) {
+	response, err := s.client.get(endpoint, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -159,16 +158,16 @@ func (s StatusService) genericLogRequest(ctx context.Context, endpoint string) (
 }
 
 // DHCPLog returns the DHCP log
-func (s StatusService) DHCPLog(ctx context.Context) ([]string, error) {
-	return s.genericLogRequest(ctx, dhcpLogStatusEndpoint)
+func (s StatusService) DHCPLog() ([]string, error) {
+	return s.genericLogRequest(dhcpLogStatusEndpoint)
 }
 
 // FirewallLog returns the firewall log
-func (s StatusService) FirewallLog(ctx context.Context) ([]string, error) {
-	return s.genericLogRequest(ctx, firewallLogStatusEndpoint)
+func (s StatusService) FirewallLog() ([]string, error) {
+	return s.genericLogRequest(firewallLogStatusEndpoint)
 }
 
 // SystemLog returns the firewall log
-func (s StatusService) SystemLog(ctx context.Context) ([]string, error) {
-	return s.genericLogRequest(ctx, systemLogStatusEndpoint)
+func (s StatusService) SystemLog() ([]string, error) {
+	return s.genericLogRequest(systemLogStatusEndpoint)
 }
