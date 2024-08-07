@@ -1,7 +1,6 @@
 package pfapi
 
 import (
-	"context"
 	"encoding/json"
 	"strconv"
 
@@ -9,16 +8,23 @@ import (
 )
 
 const (
-	aliasEndpoint         = "api/v1/firewall/alias"
-	aliasEntryEndpoint    = "api/v1/firewall/alias"
-	ruleEndpoint          = "api/v1/firewall/rule"
-	firewallApplyEndpoint = "api/v1/firewall/apply"
+	aliasEndpoint          = "api/v1/firewall/alias"
+	aliasEntryEndpoint     = "api/v1/firewall/alias/entity"
+	ruleEndpoint           = "api/v1/firewall/rule"
+	natPortForwardEndpoint = "api/v1/firewall/nat/port_forward"
+	firewallApplyEndpoint  = "api/v1/firewall/apply"
 )
 
-// FirewallService provides firewall API methods
 type FirewallService service
 
-// FirewallAlias represents a single firewall alias
+func (s FirewallService) Apply() error {
+	_, err := s.client.post(firewallApplyEndpoint, nil, nil)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 type FirewallAlias struct {
 	Name    string `json:"name"`
 	Type    string `json:"type"`
@@ -32,8 +38,7 @@ type firewallAliasListResponse struct {
 	Data []*FirewallAlias `json:"data"`
 }
 
-// ListAliases returns the aliases
-func (s FirewallService) ListAliases() ([]*FirewallAlias, error) {
+func (s FirewallService) AliasesList() ([]*FirewallAlias, error) {
 	response, err := s.client.get(aliasEndpoint, nil)
 	if err != nil {
 		return nil, err
@@ -60,8 +65,7 @@ type firewallAliasRequestCreate struct {
 	Apply bool `json:"apply"`
 }
 
-// CreateAlias creates a new Alias
-func (s FirewallService) CreateAlias(newAlias FirewallAliasRequest, apply bool) error {
+func (s FirewallService) AliasCreate(newAlias FirewallAliasRequest, apply bool) error {
 	requestData := firewallAliasRequestCreate{
 		FirewallAliasRequest: newAlias,
 		Apply:                apply,
@@ -78,8 +82,7 @@ func (s FirewallService) CreateAlias(newAlias FirewallAliasRequest, apply bool) 
 	return nil
 }
 
-// DeleteAlias deletes a firewall Alias
-func (s FirewallService) DeleteAlias(aliasToDelete string, apply bool) error {
+func (s FirewallService) AliasDelete(aliasToDelete string, apply bool) error {
 	_, err := s.client.delete(
 		aliasEndpoint,
 		map[string]string{
@@ -99,8 +102,7 @@ type firewallAliasRequestUpdate struct {
 	Id    string `json:"id"`
 }
 
-// UpdateAlias modifies an existing alias
-func (s FirewallService) UpdateAlias(aliasToUpdate string, newAliasData FirewallAliasRequest, apply bool) error {
+func (s FirewallService) AliasUpdate(aliasToUpdate string, newAliasData FirewallAliasRequest, apply bool) error {
 	requestData := firewallAliasRequestUpdate{
 		FirewallAliasRequest: newAliasData,
 		Apply:                apply,
@@ -118,34 +120,15 @@ func (s FirewallService) UpdateAlias(aliasToUpdate string, newAliasData Firewall
 	return nil
 }
 
-// DeleteAliasEntry deletes a address from a firewall alias
-func (s FirewallService) DeleteAliasEntry(aliasName string, address string, apply bool) error {
-	_, err := s.client.delete(
-		aliasEntryEndpoint,
-		map[string]string{
-			"name":    aliasName,
-			"address": address,
-			"apply":   strconv.FormatBool(apply),
-		},
-	)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-type addAliasEntryRequest struct {
+type firewallAliasEntryRequestCreate struct {
 	Address []string `json:"address"`
 	Apply   bool     `json:"apply"`
 	Detail  []string `json:"detail"`
 	Name    string   `json:"name"`
 }
 
-// AddAliasEntry adds an address to an existing Alias. The addresses to add is
-// represented by a map with the address to add being the key, and the
-// description being the value.
-func (s FirewallService) AddAliasEntry(aliasName string, toAdd map[string]string, apply bool) error {
-	newRequest := addAliasEntryRequest{
+func (s FirewallService) AliasEntryCreate(aliasName string, toAdd map[string]string, apply bool) error {
+	newRequest := firewallAliasEntryRequestCreate{
 		Address: maps.Keys(toAdd),
 		Apply:   apply,
 		Detail:  maps.Values(toAdd),
@@ -161,10 +144,15 @@ func (s FirewallService) AddAliasEntry(aliasName string, toAdd map[string]string
 	}
 	return nil
 }
-
-// Apply applies pending firewall changes
-func (s FirewallService) Apply() error {
-	_, err := s.client.post(firewallApplyEndpoint, nil, nil)
+func (s FirewallService) AliasEntryDelete(aliasName string, address string, apply bool) error {
+	_, err := s.client.delete(
+		aliasEntryEndpoint,
+		map[string]string{
+			"name":    aliasName,
+			"address": address,
+			"apply":   strconv.FormatBool(apply),
+		},
+	)
 	if err != nil {
 		return err
 	}
@@ -204,8 +192,7 @@ type firewallRuleListResponse struct {
 	Data []*FirewallRule `json:"data"`
 }
 
-// ListRules returns the rules
-func (s FirewallService) ListRules() ([]*FirewallRule, error) {
+func (s FirewallService) RulesList() ([]*FirewallRule, error) {
 	response, err := s.client.get(ruleEndpoint, nil)
 	if err != nil {
 		return nil, err
@@ -219,8 +206,7 @@ func (s FirewallService) ListRules() ([]*FirewallRule, error) {
 	return resp.Data, nil
 }
 
-// DeleteRule deletes a firewall Rule
-func (s FirewallService) DeleteRule(tracker int, apply bool) error {
+func (s FirewallService) RuleDelete(tracker int, apply bool) error {
 	_, err := s.client.delete(
 		ruleEndpoint,
 		map[string]string{
@@ -263,14 +249,13 @@ type FirewallRuleRequest struct {
 	Type         string   `json:"type"`
 }
 
-type firewallRuleCreateRequest struct {
+type firewallRuleRequestCreate struct {
 	FirewallRuleRequest
 	Apply bool `json:"apply"`
 }
 
-// CreateRule creates a new Rule
-func (s FirewallService) CreateRule(newRule FirewallRuleRequest, apply bool) error {
-	requestData := firewallRuleCreateRequest{
+func (s FirewallService) RuleCreate(newRule FirewallRuleRequest, apply bool) error {
+	requestData := firewallRuleRequestCreate{
 		FirewallRuleRequest: newRule,
 		Apply:               apply,
 	}
@@ -285,15 +270,14 @@ func (s FirewallService) CreateRule(newRule FirewallRuleRequest, apply bool) err
 	return nil
 }
 
-type firewallRuleUpdateRequest struct {
+type firewallRuleRequestUpdate struct {
 	FirewallRuleRequest
 	Apply   bool `json:"apply"`
 	Tracker int  `json:"tracker"`
 }
 
-// UpdateRule modifies an existing rule
-func (s FirewallService) UpdateRule(ctx context.Context, ruleToUpdate int, newRuleData FirewallRuleRequest, apply bool) error {
-	requestData := firewallRuleUpdateRequest{
+func (s FirewallService) RuleUpdate(ruleToUpdate int, newRuleData FirewallRuleRequest, apply bool) error {
+	requestData := firewallRuleRequestUpdate{
 		FirewallRuleRequest: newRuleData,
 		Apply:               apply,
 		Tracker:             ruleToUpdate,
@@ -308,4 +292,165 @@ func (s FirewallService) UpdateRule(ctx context.Context, ruleToUpdate int, newRu
 		return err
 	}
 	return nil
+}
+
+type FirewallRuleNatPortForwardDestination struct {
+	Network string `json:"network"`
+	Port    string `json:"port"`
+}
+type FirewallRuleNatPortForward struct {
+	Index            int                                    `json:"-"`
+	Source           map[string]interface{}                 `json:"source"`
+	Destination      *FirewallRuleNatPortForwardDestination `json:"destination"`
+	IpProtocol       string                                 `json:"ipprotocol"`
+	Protocol         string                                 `json:"protocol"`
+	Target           string                                 `json:"target"`
+	LocalPort        string                                 `json:"local-port"`
+	Interface        string                                 `json:"interface"`
+	Descr            string                                 `json:"descr"`
+	AssociatedRuleId string                                 `json:"associated-rule-id"`
+}
+type FirewallRuleNatPortForwardRequest struct {
+	Descr         string `json:"descr"`
+	Disabled      bool   `json:"disabled"`
+	Dst           string `json:"dst"`
+	DstPort       string `json:"dstport"`
+	Interface     string `json:"interface"`
+	LocalPort     string `json:"local-port"`
+	Natreflection string `json:"natreflection"`
+	Nordr         string `json:"nordr"`
+	Nosync        bool   `json:"nosync"`
+	Protocol      string `json:"protocol"`
+	Src           string `json:"src"`
+	SrcPort       string `json:"srcport"`
+	Target        string `json:"target"`
+	Top           bool   `json:"top"`
+}
+type firewallRuleNatPortForwardCreateRequest struct {
+	FirewallRuleNatPortForwardRequest
+	Apply bool `json:"apply"`
+}
+
+func (s FirewallService) NatRulePortForwardCreate(rule FirewallRuleNatPortForwardRequest, apply bool) error {
+	requestData := firewallRuleNatPortForwardCreateRequest{
+		FirewallRuleNatPortForwardRequest: rule,
+		Apply:                             apply,
+	}
+
+	jsonData, err := json.Marshal(requestData)
+	if err != nil {
+		return err
+	}
+	_, err = s.client.post(natPortForwardEndpoint, nil, jsonData)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s FirewallService) NatRulePortForwardCreateSimple(protocol string, port string, localIp string, localPort string, src string, description string) error {
+
+	if "" == src {
+		src = "any"
+	}
+	rule := FirewallRuleNatPortForwardRequest{
+		Descr:         description,
+		Disabled:      false,
+		Dst:           "wanip",
+		DstPort:       port,
+		Interface:     "wan",
+		LocalPort:     localPort,
+		Natreflection: "enable",
+		Nordr:         "",
+		Nosync:        false,
+		Protocol:      protocol,
+		Src:           src,
+		SrcPort:       "any",
+		Target:        localIp,
+		Top:           false,
+	}
+
+	return s.NatRulePortForwardCreate(rule, true)
+}
+
+type firewallNatRulePortForwardListResponse struct {
+	apiResponse
+	Data []FirewallRuleNatPortForward `json:"data"`
+}
+
+func (s FirewallService) NatRulePortForwardList() (rules []FirewallRuleNatPortForward, err error) {
+
+	response, err := s.client.get(natPortForwardEndpoint, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp := new(firewallNatRulePortForwardListResponse)
+	if err = json.Unmarshal(response, resp); err != nil {
+		return nil, err
+	}
+
+	for index, rule := range resp.Data {
+		rule.Index = index
+		rules = append(rules, rule)
+	}
+	return resp.Data, nil
+}
+func (s FirewallService) NatRulePortForwardFirst(port string, protocol string, src string) (rule *FirewallRuleNatPortForward, err error) {
+	rules, err := s.NatRulePortForwardList()
+	if nil != err {
+		return
+	}
+	for _, r := range rules {
+		if port == r.Destination.Port && ("" == protocol || r.Protocol == protocol) {
+			if "" == src {
+				rule = &r
+				return
+			} else {
+				for _, addr := range r.Source {
+					if addr == src {
+						rule = &r
+						return
+					}
+
+				}
+			}
+
+		}
+	}
+	return
+}
+
+func (s FirewallService) NatRulePortForwardDelete(index int, apply bool) error {
+	_, err := s.client.delete(
+		natPortForwardEndpoint,
+		map[string]string{
+			"id":    strconv.Itoa(index),
+			"apply": strconv.FormatBool(apply),
+		},
+	)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func (s FirewallService) NatRulePortForwardDeleteSimple(port string, protocol string, src string) (err error) {
+	for {
+		rule, err1 := s.NatRulePortForwardFirst(port, protocol, src)
+		if nil != err1 {
+			err = err1
+			return
+		}
+		if nil == rule {
+			return
+		}
+
+		err1 = s.NatRulePortForwardDelete(rule.Index, true)
+		if nil != err1 {
+			err = err1
+			return
+		}
+	}
+	return
+
 }

@@ -20,3 +20,10 @@ func (d *StringOrInt) ToInt() int {
 
 	return i
 }
+
+type apiResponse struct {
+	Status  string `json:"status"`
+	Code    int    `json:"code"`
+	Return  int    `json:"return"`
+	Message string `json:"message"`
+}

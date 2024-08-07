@@ -207,7 +207,6 @@ func (c *Client) put(endpoint string, queryMap map[string]string, body []byte) (
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("respbody:", string(respbody))
 	if res.StatusCode < 200 || res.StatusCode > 299 {
 		resp := new(apiResponse)
 		if err = json.Unmarshal(respbody, resp); err != nil {
@@ -243,11 +242,4 @@ func (c *Client) delete(endpoint string, queryMap map[string]string) ([]byte, er
 	}
 
 	return body, nil
-}
-
-type apiResponse struct {
-	Status  string `json:"status"`
-	Code    int    `json:"code"`
-	Return  int    `json:"return"`
-	Message string `json:"message"`
 }
