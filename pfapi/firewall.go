@@ -2,9 +2,8 @@ package pfapi
 
 import (
 	"encoding/json"
-	"strconv"
-
 	"golang.org/x/exp/maps"
+	"strconv"
 )
 
 const (
@@ -360,7 +359,7 @@ func (s FirewallService) NatRulePortForwardCreateSimple(protocol string, port st
 		DstPort:       port,
 		Interface:     "wan",
 		LocalPort:     localPort,
-		Natreflection: "enable",
+		Natreflection: "disable",
 		Nordr:         "",
 		Nosync:        false,
 		Protocol:      protocol,
@@ -394,7 +393,7 @@ func (s FirewallService) NatRulePortForwardList() (rules []FirewallRuleNatPortFo
 		rule.Index = index
 		rules = append(rules, rule)
 	}
-	return resp.Data, nil
+	return
 }
 func (s FirewallService) NatRulePortForwardFirst(port string, protocol string, src string) (rule *FirewallRuleNatPortForward, err error) {
 	rules, err := s.NatRulePortForwardList()

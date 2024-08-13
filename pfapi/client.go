@@ -139,6 +139,7 @@ func (c *Client) do(method, endpoint string, queryMap map[string]string, body []
 }
 
 func (c *Client) get(endpoint string, queryMap map[string]string) ([]byte, error) {
+	//fmt.Println("pfsense get ",endpoint,queryMap)
 	res, err := c.do(http.MethodGet, endpoint, queryMap, nil)
 	if err != nil {
 		return nil, err
@@ -167,6 +168,7 @@ func (c *Client) get(endpoint string, queryMap map[string]string) ([]byte, error
 }
 
 func (c *Client) post(endpoint string, queryMap map[string]string, body []byte) ([]byte, error) {
+	//fmt.Println("pfsense post ",endpoint,queryMap,string(body))
 	res, err := c.do(http.MethodPost, endpoint, queryMap, body)
 	if err != nil {
 		return nil, err
@@ -193,6 +195,7 @@ func (c *Client) post(endpoint string, queryMap map[string]string, body []byte) 
 }
 
 func (c *Client) put(endpoint string, queryMap map[string]string, body []byte) ([]byte, error) {
+	//fmt.Println("pfsense put ",endpoint,queryMap,string(body))
 	res, err := c.do(http.MethodPut, endpoint, queryMap, body)
 
 	if err != nil {
@@ -219,6 +222,7 @@ func (c *Client) put(endpoint string, queryMap map[string]string, body []byte) (
 }
 
 func (c *Client) delete(endpoint string, queryMap map[string]string) ([]byte, error) {
+	//fmt.Println("pfsense delete ",endpoint,queryMap)
 	res, err := c.do(http.MethodDelete, endpoint, queryMap, nil)
 	if err != nil {
 		return nil, err
